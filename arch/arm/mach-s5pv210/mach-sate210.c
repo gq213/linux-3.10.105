@@ -3,6 +3,8 @@
 #include <linux/init.h>
 #include <linux/serial_core.h>
 #include <linux/serial_s3c.h>
+#include <linux/dm9000.h>
+#include <linux/gpio.h>
 
 #include <asm/mach/arch.h>
 #include <asm/mach/map.h>
@@ -17,6 +19,8 @@
 #include <plat/samsung-time.h>
 #include <plat/clock.h>
 #include <plat/mfc.h>
+#include <plat/gpio-cfg.h>
+#include <plat/regs-srom.h>
 
 #include "common.h"
 
@@ -65,12 +69,59 @@ static struct s3c2410_uartcfg sate210_uartcfgs[] __initdata = {
 	},
 };
 
-static struct platform_device *sate210_devices[] __initdata = {
+#ifdef CONFIG_DM9000
+static struct resource sate210_dm9000_resources[] = {
+	[0] = DEFINE_RES_MEM(S5PV210_PA_SROM_BANK1, 1),
+	[1] = DEFINE_RES_MEM(S5PV210_PA_SROM_BANK1 + 4, 1),
+	[2] = DEFINE_RES_NAMED(IRQ_EINT(0), 1, NULL, IORESOURCE_IRQ \
+				| IORESOURCE_IRQ_HIGHLEVEL),
+};
 
+static struct dm9000_plat_data sate210_dm9000_platdata = {
+	.flags		= DM9000_PLATF_16BITONLY | DM9000_PLATF_NO_EEPROM,
+	.dev_addr	= { 0x00, 0x09, 0xc0, 0xff, 0xec, 0x48 },
+};
+
+static struct platform_device sate210_dm9000 = {
+	.name		= "dm9000",
+	.id		= -1,
+	.num_resources	= ARRAY_SIZE(sate210_dm9000_resources),
+	.resource	= sate210_dm9000_resources,
+	.dev		= {
+		.platform_data	= &sate210_dm9000_platdata,
+	},
+};
+
+static void __init sate210_dm9000_init(void)
+{
+	unsigned int tmp;
+
+	gpio_request(S5PV210_MP01(1), "nCS1");
+	s3c_gpio_cfgpin(S5PV210_MP01(1), S3C_GPIO_SFN(2));
+	gpio_free(S5PV210_MP01(1));
+
+	tmp = (5 << S5P_SROM_BCX__TACC__SHIFT);
+	__raw_writel(tmp, S5P_SROM_BC1);
+
+	tmp = __raw_readl(S5P_SROM_BW);
+	tmp &= (S5P_SROM_BW__CS_MASK << S5P_SROM_BW__NCS1__SHIFT);
+	tmp |= (3 << S5P_SROM_BW__NCS1__SHIFT);
+	__raw_writel(tmp, S5P_SROM_BW);
+}
+#endif
+
+static struct platform_device *sate210_devices[] __initdata = {
+#ifdef CONFIG_DM9000
+	&sate210_dm9000,
+#endif
 };
 
 static void __init sate210_machine_init(void)
 {
+#ifdef CONFIG_DM9000
+	sate210_dm9000_init();
+#endif
+
 	platform_add_devices(sate210_devices, ARRAY_SIZE(sate210_devices));
 }
 
