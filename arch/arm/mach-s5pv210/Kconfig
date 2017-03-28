@@ -193,6 +193,13 @@ config MACH_TORBRECK
 	help
 	  Machine support for aESOP Torbreck
 
+config MACH_SATE210
+	bool "SATE210"
+	select CPU_S5PV210
+	select S5P_DEV_MFC
+	help
+	  Machine support for NQarm Sate210-F
+
 endmenu
 
 endif
