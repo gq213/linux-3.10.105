@@ -21,6 +21,7 @@
 #include <plat/mfc.h>
 #include <plat/gpio-cfg.h>
 #include <plat/regs-srom.h>
+#include <plat/sdhci.h>
 
 #include "common.h"
 
@@ -110,9 +111,21 @@ static void __init sate210_dm9000_init(void)
 }
 #endif
 
+#if (defined(CONFIG_S3C_DEV_HSMMC2) || defined(CONFIG_S3C_DEV_HSMMC3))
+static struct s3c_sdhci_platdata sate210_hsmmc23_data __initdata = {
+	.cd_type	= S3C_SDHCI_CD_INTERNAL,
+};
+#endif
+
 static struct platform_device *sate210_devices[] __initdata = {
 #ifdef CONFIG_DM9000
 	&sate210_dm9000,
+#endif
+#ifdef CONFIG_S3C_DEV_HSMMC2
+	&s3c_device_hsmmc2,
+#endif
+#ifdef CONFIG_S3C_DEV_HSMMC3
+	&s3c_device_hsmmc3,
 #endif
 };
 
@@ -120,6 +133,12 @@ static void __init sate210_machine_init(void)
 {
 #ifdef CONFIG_DM9000
 	sate210_dm9000_init();
+#endif
+#ifdef CONFIG_S3C_DEV_HSMMC2
+	s3c_sdhci2_set_platdata(&sate210_hsmmc23_data);
+#endif
+#ifdef CONFIG_S3C_DEV_HSMMC3
+	s3c_sdhci3_set_platdata(&sate210_hsmmc23_data);
 #endif
 
 	platform_add_devices(sate210_devices, ARRAY_SIZE(sate210_devices));

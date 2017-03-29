@@ -180,6 +180,7 @@ config MMC_SDHCI_TEGRA
 
 config MMC_SDHCI_S3C
 	tristate "SDHCI support on Samsung S3C SoC"
+	select S5PV210_SETUP_SDHCI
 	depends on MMC_SDHCI && PLAT_SAMSUNG
 	help
 	  This selects the Secure Digital Host Controller Interface (SDHCI)
@@ -189,6 +190,26 @@ config MMC_SDHCI_S3C
 	  If you have a controller with this interface, say Y or M here.
 
 	  If unsure, say N.
+
+config MMC_SDHCI_S3C_INDEX_0
+	tristate "enable sdhci controller 0"
+	select S3C_DEV_HSMMC
+	depends on MMC_SDHCI_S3C
+
+config MMC_SDHCI_S3C_INDEX_1
+	tristate "enable sdhci controller 1"
+	select S3C_DEV_HSMMC1
+	depends on MMC_SDHCI_S3C
+
+config MMC_SDHCI_S3C_INDEX_2
+	tristate "enable sdhci controller 2"
+	select S3C_DEV_HSMMC2
+	depends on MMC_SDHCI_S3C
+
+config MMC_SDHCI_S3C_INDEX_3
+	tristate "enable sdhci controller 3"
+	select S3C_DEV_HSMMC3
+	depends on MMC_SDHCI_S3C
 
 config MMC_SDHCI_SIRF
 	tristate "SDHCI support on CSR SiRFprimaII and SiRFmarco SoCs"
