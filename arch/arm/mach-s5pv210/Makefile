@@ -26,6 +26,7 @@ obj-$(CONFIG_MACH_SMDKC110)	+= mach-smdkc110.o
 obj-$(CONFIG_MACH_SMDKV210)	+= mach-smdkv210.o
 obj-$(CONFIG_MACH_TORBRECK)	+= mach-torbreck.o
 obj-$(CONFIG_MACH_SATE210)	+= mach-sate210.o
+obj-$(CONFIG_MACH_TQ210)	+= mach-tq210.o
 
 # device support
 

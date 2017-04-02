@@ -200,6 +200,13 @@ config MACH_SATE210
 	help
 	  Machine support for NQarm Sate210-F
 
+config MACH_TQ210
+	bool "TQ210"
+	select CPU_S5PV210
+	select S5P_DEV_MFC
+	help
+	  Machine support for embedsky TQ210v4
+
 endmenu
 
 endif
