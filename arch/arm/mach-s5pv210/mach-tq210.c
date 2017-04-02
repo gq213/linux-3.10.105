@@ -5,6 +5,7 @@
 #include <linux/serial_s3c.h>
 #include <linux/dm9000.h>
 #include <linux/gpio.h>
+#include <linux/i2c.h>
 
 #include <asm/mach/arch.h>
 #include <asm/mach/map.h>
@@ -22,6 +23,7 @@
 #include <plat/gpio-cfg.h>
 #include <plat/regs-srom.h>
 #include <plat/sdhci.h>
+#include <linux/platform_data/i2c-s3c2410.h>
 
 #include "common.h"
 
@@ -117,6 +119,12 @@ static struct s3c_sdhci_platdata tq210_hsmmc_data __initdata = {
 };
 #endif
 
+static struct i2c_board_info tq210_i2c_devs0[] __initdata = {
+#ifdef CONFIG_EEPROM_AT24
+	{ I2C_BOARD_INFO("24c02", 0x50), },
+#endif
+};
+
 static struct platform_device *tq210_devices[] __initdata = {
 #ifdef CONFIG_DM9000
 	&tq210_dm9000,
@@ -124,6 +132,7 @@ static struct platform_device *tq210_devices[] __initdata = {
 #ifdef CONFIG_S3C_DEV_HSMMC
 	&s3c_device_hsmmc0,
 #endif
+	&s3c_device_i2c0,
 };
 
 static void __init tq210_machine_init(void)
@@ -134,6 +143,9 @@ static void __init tq210_machine_init(void)
 #ifdef CONFIG_S3C_DEV_HSMMC
 	s3c_sdhci0_set_platdata(&tq210_hsmmc_data);
 #endif
+	s3c_i2c0_set_platdata(NULL);
+	i2c_register_board_info(0, tq210_i2c_devs0,
+			ARRAY_SIZE(tq210_i2c_devs0));
 
 	platform_add_devices(tq210_devices, ARRAY_SIZE(tq210_devices));
 }
