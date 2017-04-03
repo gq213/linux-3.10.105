@@ -90,6 +90,13 @@ static void dma_enqueue(struct snd_pcm_substream *substream)
 	dma_info.period = prtd->dma_period;
 	dma_info.len = prtd->dma_period*limit;
 
+	if (dma_info.cap == DMA_CYCLIC) {
+		dma_info.buf = pos;
+		prtd->params->ops->prepare(prtd->params->ch, &dma_info);
+		prtd->dma_loaded += limit;
+		return;
+	}
+
 	while (prtd->dma_loaded < limit) {
 		pr_debug("dma_loaded: %d\n", prtd->dma_loaded);
 
@@ -176,6 +183,10 @@ static int dma_hw_params(struct snd_pcm_substream *substream,
 		prtd->params->ch = prtd->params->ops->request(
 				prtd->params->channel, &req, rtd->cpu_dai->dev,
 				prtd->params->ch_name);
+		if (!prtd->params->ch) {
+			pr_err("Failed to allocate DMA channel\n");
+			return -ENXIO;
+		}
 		prtd->params->ops->config(prtd->params->ch, &config);
 	}
 

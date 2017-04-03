@@ -123,6 +123,9 @@ static struct i2c_board_info tq210_i2c_devs0[] __initdata = {
 #ifdef CONFIG_EEPROM_AT24
 	{ I2C_BOARD_INFO("24c02", 0x50), },
 #endif
+#ifdef CONFIG_SND_SOC_WM8960
+	{ I2C_BOARD_INFO("wm8960", 0x1a), },
+#endif
 };
 
 static struct platform_device *tq210_devices[] __initdata = {
@@ -133,6 +136,9 @@ static struct platform_device *tq210_devices[] __initdata = {
 	&s3c_device_hsmmc0,
 #endif
 	&s3c_device_i2c0,
+#ifdef CONFIG_SND_S5PV210_I2S
+	&s5pv210_device_iis0,
+#endif
 };
 
 static void __init tq210_machine_init(void)
