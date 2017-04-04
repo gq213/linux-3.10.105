@@ -2043,6 +2043,8 @@ config FB_S3C
 	select FB_CFB_FILLRECT
 	select FB_CFB_COPYAREA
 	select FB_CFB_IMAGEBLIT
+	select S3C_DEV_FB
+	select S5PV210_SETUP_FB_24BPP
 	---help---
 	  Frame buffer driver for the built-in FB controller in the Samsung
 	  SoC line from the S3C2443 onwards, including the S3C2416, S3C2450,

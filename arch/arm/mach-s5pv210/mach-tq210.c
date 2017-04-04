@@ -10,6 +10,7 @@
 #include <linux/input.h>
 #include <linux/gpio_keys.h>
 #include <linux/leds.h>
+#include <linux/fb.h>
 
 #include <asm/mach/arch.h>
 #include <asm/mach/map.h>
@@ -27,8 +28,11 @@
 #include <plat/gpio-cfg.h>
 #include <plat/regs-srom.h>
 #include <plat/sdhci.h>
+#include <plat/fb.h>
 #include <linux/platform_data/i2c-s3c2410.h>
 #include <linux/platform_data/usb-ehci-s5p.h>
+
+#include <video/platform_lcd.h>
 
 #include "common.h"
 
@@ -261,6 +265,60 @@ static struct platform_device tq210_device_led= {
 };
 #endif
 
+#ifdef CONFIG_FB_S3C
+static void tq210_tn92_data_set_power(struct plat_lcd_data *pd,
+					unsigned int power)
+{
+	if (power) {
+		gpio_request_one(S5PV210_GPD0(0), GPIOF_OUT_INIT_HIGH, "GPD0");
+		gpio_free(S5PV210_GPD0(0));
+	} else {
+		gpio_request_one(S5PV210_GPD0(0), GPIOF_OUT_INIT_LOW, "GPD0");
+		gpio_free(S5PV210_GPD0(0));
+	}
+}
+
+static struct plat_lcd_data tq210_lcd_tn92_data = {
+	.set_power	= tq210_tn92_data_set_power,
+};
+
+static struct platform_device tq210_lcd_tn92 = {
+	.name			= "platform-lcd",
+	.dev.parent		= &s3c_device_fb.dev,
+	.dev.platform_data	= &tq210_lcd_tn92_data,
+};
+
+static struct s3c_fb_pd_win tq210_fb_win = {
+	.max_bpp	= 32,
+	.default_bpp	= 24,
+	.xres		= 800,
+	.yres		= 480,
+};
+
+static struct fb_videomode tq210_lcd_timing = {
+	.left_margin	= 26,	//h_bp
+	.right_margin	= 210,	//h_fp
+	.upper_margin	= 13,	//v_bp
+	.lower_margin	= 22,	//v_fp
+	.hsync_len	= 20,
+	.vsync_len	= 10,
+	.xres		= 800,
+	.yres		= 480,
+};
+
+static struct s3c_fb_platdata tq210_lcd0_pdata __initdata = {
+	.win[0]		= &tq210_fb_win,
+	.win[1]		= &tq210_fb_win,
+	.win[2]		= &tq210_fb_win,
+	.win[3]		= &tq210_fb_win,
+	.win[4]		= &tq210_fb_win,
+	.vtiming	= &tq210_lcd_timing,
+	.vidcon0	= (4<<6)|(1<<4),//33.35MHz
+	.vidcon1	= (1<<6)|(1<<5),
+	.setup_gpio	= s5pv210_fb_gpio_setup_24bpp,
+};
+#endif
+
 static struct platform_device *tq210_devices[] __initdata = {
 #ifdef CONFIG_DM9000
 	&tq210_dm9000,
@@ -284,6 +342,10 @@ static struct platform_device *tq210_devices[] __initdata = {
 #ifdef CONFIG_LEDS_GPIO
 	&tq210_device_led,
 #endif
+#ifdef CONFIG_FB_S3C
+	&s3c_device_fb,
+	&tq210_lcd_tn92,
+#endif
 };
 
 static void __init tq210_machine_init(void)
@@ -299,6 +361,9 @@ static void __init tq210_machine_init(void)
 			ARRAY_SIZE(tq210_i2c_devs0));
 #ifdef CONFIG_S5P_DEV_USB_EHCI
 	tq210_ehci_init();
+#endif
+#ifdef CONFIG_FB_S3C
+	s3c_fb_set_platdata(&tq210_lcd0_pdata);
 #endif
 	platform_add_devices(tq210_devices, ARRAY_SIZE(tq210_devices));
 }
