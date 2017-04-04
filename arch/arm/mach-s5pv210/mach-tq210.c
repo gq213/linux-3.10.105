@@ -11,6 +11,7 @@
 #include <linux/gpio_keys.h>
 #include <linux/leds.h>
 #include <linux/fb.h>
+#include <linux/pwm_backlight.h>
 
 #include <asm/mach/arch.h>
 #include <asm/mach/map.h>
@@ -29,6 +30,7 @@
 #include <plat/regs-srom.h>
 #include <plat/sdhci.h>
 #include <plat/fb.h>
+#include <plat/backlight.h>
 #include <linux/platform_data/i2c-s3c2410.h>
 #include <linux/platform_data/usb-ehci-s5p.h>
 
@@ -269,6 +271,7 @@ static struct platform_device tq210_device_led= {
 static void tq210_tn92_data_set_power(struct plat_lcd_data *pd,
 					unsigned int power)
 {
+#if !defined(CONFIG_BACKLIGHT_PWM)
 	if (power) {
 		gpio_request_one(S5PV210_GPD0(0), GPIOF_OUT_INIT_HIGH, "GPD0");
 		gpio_free(S5PV210_GPD0(0));
@@ -276,6 +279,7 @@ static void tq210_tn92_data_set_power(struct plat_lcd_data *pd,
 		gpio_request_one(S5PV210_GPD0(0), GPIOF_OUT_INIT_LOW, "GPD0");
 		gpio_free(S5PV210_GPD0(0));
 	}
+#endif
 }
 
 static struct plat_lcd_data tq210_lcd_tn92_data = {
@@ -316,6 +320,17 @@ static struct s3c_fb_platdata tq210_lcd0_pdata __initdata = {
 	.vidcon0	= (4<<6)|(1<<4),//33.35MHz
 	.vidcon1	= (1<<6)|(1<<5),
 	.setup_gpio	= s5pv210_fb_gpio_setup_24bpp,
+};
+#endif
+
+#ifdef CONFIG_BACKLIGHT_PWM
+static struct samsung_bl_gpio_info tq210_bl_gpio_info = {
+	.no = S5PV210_GPD0(0),
+	.func = S3C_GPIO_SFN(2),
+};
+static struct platform_pwm_backlight_data tq210_bl_data = {
+	.pwm_id = 0,
+	.pwm_period_ns = 50000,
 };
 #endif
 
@@ -364,6 +379,9 @@ static void __init tq210_machine_init(void)
 #endif
 #ifdef CONFIG_FB_S3C
 	s3c_fb_set_platdata(&tq210_lcd0_pdata);
+#endif
+#ifdef CONFIG_BACKLIGHT_PWM
+	samsung_bl_set(&tq210_bl_gpio_info, &tq210_bl_data);
 #endif
 	platform_add_devices(tq210_devices, ARRAY_SIZE(tq210_devices));
 }
