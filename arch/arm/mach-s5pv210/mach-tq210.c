@@ -334,6 +334,30 @@ static struct platform_pwm_backlight_data tq210_bl_data = {
 };
 #endif
 
+#ifdef CONFIG_INPUT_PWM_BEEPER
+static struct platform_device tq210_pwm_beeper = {
+	.name = "pwm-beeper",
+	.id = -1,
+	.dev = {
+		.platform_data = (void *)1,
+	},
+};
+static int __init tq210_pwm_beeper_init(void)
+{
+	int ret;
+
+	ret = gpio_request(S5PV210_GPD0(1), "beeper");
+	if (ret) {
+		printk(KERN_ERR "failed to request GPD for PWM-OUT 1\n");
+		return ret;
+	}
+
+	s3c_gpio_cfgpin(S5PV210_GPD0(1), S3C_GPIO_SFN(2));
+
+	return 0;
+}
+#endif
+
 static struct platform_device *tq210_devices[] __initdata = {
 #ifdef CONFIG_DM9000
 	&tq210_dm9000,
@@ -361,6 +385,10 @@ static struct platform_device *tq210_devices[] __initdata = {
 	&s3c_device_fb,
 	&tq210_lcd_tn92,
 #endif
+#ifdef CONFIG_INPUT_PWM_BEEPER
+	&s3c_device_timer[1],
+	&tq210_pwm_beeper,
+#endif
 };
 
 static void __init tq210_machine_init(void)
@@ -382,6 +410,9 @@ static void __init tq210_machine_init(void)
 #endif
 #ifdef CONFIG_BACKLIGHT_PWM
 	samsung_bl_set(&tq210_bl_gpio_info, &tq210_bl_data);
+#endif
+#ifdef CONFIG_INPUT_PWM_BEEPER
+	tq210_pwm_beeper_init();
 #endif
 	platform_add_devices(tq210_devices, ARRAY_SIZE(tq210_devices));
 }
