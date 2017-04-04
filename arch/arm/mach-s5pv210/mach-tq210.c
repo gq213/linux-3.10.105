@@ -24,6 +24,7 @@
 #include <plat/regs-srom.h>
 #include <plat/sdhci.h>
 #include <linux/platform_data/i2c-s3c2410.h>
+#include <linux/platform_data/usb-ehci-s5p.h>
 
 #include "common.h"
 
@@ -128,6 +129,16 @@ static struct i2c_board_info tq210_i2c_devs0[] __initdata = {
 #endif
 };
 
+#ifdef CONFIG_S5P_DEV_USB_EHCI
+static struct s5p_ehci_platdata tq210_ehci_pdata;
+static void __init tq210_ehci_init(void)
+{
+	struct s5p_ehci_platdata *pdata = &tq210_ehci_pdata;
+
+	s5p_ehci_set_platdata(pdata);
+}
+#endif
+
 static struct platform_device *tq210_devices[] __initdata = {
 #ifdef CONFIG_DM9000
 	&tq210_dm9000,
@@ -138,6 +149,9 @@ static struct platform_device *tq210_devices[] __initdata = {
 	&s3c_device_i2c0,
 #ifdef CONFIG_SND_S5PV210_I2S
 	&s5pv210_device_iis0,
+#endif
+#ifdef CONFIG_S5P_DEV_USB_EHCI
+	&s5p_device_ehci,
 #endif
 };
 
@@ -152,7 +166,9 @@ static void __init tq210_machine_init(void)
 	s3c_i2c0_set_platdata(NULL);
 	i2c_register_board_info(0, tq210_i2c_devs0,
 			ARRAY_SIZE(tq210_i2c_devs0));
-
+#ifdef CONFIG_S5P_DEV_USB_EHCI
+	tq210_ehci_init();
+#endif
 	platform_add_devices(tq210_devices, ARRAY_SIZE(tq210_devices));
 }
 

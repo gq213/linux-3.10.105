@@ -78,10 +78,84 @@ static int s5pv210_usb_otgphy_exit(struct platform_device *pdev)
 	return 0;
 }
 
+static int s5pv210_usb_hostphy_init(struct platform_device *pdev)
+{
+	struct clk *otg_clk;
+	int err;
+
+	printk("+%s()\n", __FUNCTION__ );
+
+	otg_clk = clk_get(&pdev->dev, "otg");
+	if (IS_ERR(otg_clk)) {
+		dev_err(&pdev->dev, "Failed to get otg clock\n");
+		return PTR_ERR(otg_clk);
+	}
+
+	err = clk_enable(otg_clk);
+	if (err) {
+		dev_err(&pdev->dev, "Failed to enable otg clock\n");
+		clk_put(otg_clk);
+		return err;
+	}
+
+	writel(readl(S5PV210_USB_PHY_CON) | S5PV210_USB_PHY1_EN,
+			S5PV210_USB_PHY_CON);
+	writel((readl(S3C_PHYPWR)
+		      & ~(0x1<<7) & ~(0x1<<6)) | (0x1<<8) | (0x1<<5),
+		     S3C_PHYPWR);
+	writel((readl(S3C_PHYCLK) & ~(0x1<<7)) | (0x3<<0),
+		     S3C_PHYCLK);
+	writel((readl(S3C_RSTCON)) | (0x1<<4) | (0x1<<3),
+		     S3C_RSTCON);
+	udelay(80);
+	writel(readl(S3C_RSTCON) & ~(0x1<<4) & ~(0x1<<3),
+		     S3C_RSTCON);
+	/* "at least 10uS" for PHY reset elsewhere, 20 not enough here... */
+	udelay(80);
+
+	clk_disable(otg_clk);
+	clk_put(otg_clk);
+
+	return 0;
+}
+
+static int s5pv210_usb_hostphy_exit(struct platform_device *pdev)
+{
+	struct clk *otg_clk;
+	int err;
+
+	printk("+%s()\n", __FUNCTION__ );
+
+	otg_clk = clk_get(&pdev->dev, "otg");
+	if (IS_ERR(otg_clk)) {
+		dev_err(&pdev->dev, "Failed to get otg clock\n");
+		return PTR_ERR(otg_clk);
+	}
+
+	err = clk_enable(otg_clk);
+	if (err) {
+		dev_err(&pdev->dev, "Failed to enable otg clock\n");
+		clk_put(otg_clk);
+		return err;
+	}
+
+	writel(readl(S3C_PHYPWR) | (0x1<<7) | (0x1<<6),
+		     S3C_PHYPWR);
+	writel(readl(S5PV210_USB_PHY_CON) & ~S5PV210_USB_PHY1_EN,
+			S5PV210_USB_PHY_CON);
+
+	clk_disable(otg_clk);
+	clk_put(otg_clk);
+
+	return 0;
+}
+
 int s5p_usb_phy_init(struct platform_device *pdev, int type)
 {
 	if (type == USB_PHY_TYPE_DEVICE)
 		return s5pv210_usb_otgphy_init(pdev);
+	else if (type == USB_PHY_TYPE_HOST)
+		return s5pv210_usb_hostphy_init(pdev);
 
 	return -EINVAL;
 }
@@ -90,6 +164,8 @@ int s5p_usb_phy_exit(struct platform_device *pdev, int type)
 {
 	if (type == USB_PHY_TYPE_DEVICE)
 		return s5pv210_usb_otgphy_exit(pdev);
+	else if (type == USB_PHY_TYPE_HOST)
+		return s5pv210_usb_hostphy_exit(pdev);
 
 	return -EINVAL;
 }

@@ -226,6 +226,8 @@ config USB_EHCI_SH
 config USB_EHCI_S5P
        tristate "EHCI support for Samsung S5P/EXYNOS SoC Series"
        depends on PLAT_S5P
+       select S5PV210_SETUP_USB_PHY
+       select S5P_DEV_USB_EHCI
        help
 	Enable support for the Samsung S5Pxxxx and Exynos3/4/5 SOC's
 	on-chip EHCI controller.
