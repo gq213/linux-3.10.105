@@ -9,6 +9,7 @@
 #include <linux/w1-gpio.h>
 #include <linux/input.h>
 #include <linux/gpio_keys.h>
+#include <linux/leds.h>
 
 #include <asm/mach/arch.h>
 #include <asm/mach/map.h>
@@ -230,6 +231,36 @@ static struct platform_device s3c_device_gpio_button = {
 };
 #endif
 
+#ifdef CONFIG_LEDS_GPIO
+static struct gpio_led tq210_leds[] = {
+	[0] = {
+		.name			= "led1",
+		.default_trigger	= "heartbeat",
+		.gpio			= S5PV210_GPC0(3),
+		.active_low		= 0,
+		.default_state	= LEDS_GPIO_DEFSTATE_OFF,
+	},
+	[1] = {
+		.name			= "led2",
+		.default_trigger	= "timer",
+		.gpio			= S5PV210_GPC0(4),
+		.active_low		= 0,
+		.default_state	= LEDS_GPIO_DEFSTATE_OFF,
+	},
+};
+static struct gpio_led_platform_data tq210_gpio_led_data = {
+	.leds		= tq210_leds,
+	.num_leds	= ARRAY_SIZE(tq210_leds),
+};
+static struct platform_device tq210_device_led= {
+	.name		= "leds-gpio",
+	.id		= -1,
+	.dev		= {
+		.platform_data = &tq210_gpio_led_data,
+	},
+};
+#endif
+
 static struct platform_device *tq210_devices[] __initdata = {
 #ifdef CONFIG_DM9000
 	&tq210_dm9000,
@@ -249,6 +280,9 @@ static struct platform_device *tq210_devices[] __initdata = {
 #endif
 #ifdef CONFIG_KEYBOARD_GPIO
 	&s3c_device_gpio_button,
+#endif
+#ifdef CONFIG_LEDS_GPIO
+	&tq210_device_led,
 #endif
 };
 
