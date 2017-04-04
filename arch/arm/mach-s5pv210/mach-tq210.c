@@ -6,6 +6,7 @@
 #include <linux/dm9000.h>
 #include <linux/gpio.h>
 #include <linux/i2c.h>
+#include <linux/w1-gpio.h>
 
 #include <asm/mach/arch.h>
 #include <asm/mach/map.h>
@@ -139,6 +140,22 @@ static void __init tq210_ehci_init(void)
 }
 #endif
 
+#ifdef CONFIG_W1_SLAVE_THERM
+static struct w1_gpio_platform_data ds18b20_pdata = {
+	.pin = S5PV210_GPH1(0),
+	.is_open_drain = 0,
+	.ext_pullup_enable_pin = -1,
+};
+
+static struct platform_device tq210_ds18b20_device = {
+        .name     = "w1-gpio",
+        .id       = -1,
+        .dev      = {
+			.platform_data = &ds18b20_pdata,
+        },
+};
+#endif
+
 static struct platform_device *tq210_devices[] __initdata = {
 #ifdef CONFIG_DM9000
 	&tq210_dm9000,
@@ -152,6 +169,9 @@ static struct platform_device *tq210_devices[] __initdata = {
 #endif
 #ifdef CONFIG_S5P_DEV_USB_EHCI
 	&s5p_device_ehci,
+#endif
+#ifdef CONFIG_W1_SLAVE_THERM
+	&tq210_ds18b20_device,
 #endif
 };
 
