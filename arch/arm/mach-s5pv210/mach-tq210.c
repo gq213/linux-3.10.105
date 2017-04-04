@@ -7,6 +7,8 @@
 #include <linux/gpio.h>
 #include <linux/i2c.h>
 #include <linux/w1-gpio.h>
+#include <linux/input.h>
+#include <linux/gpio_keys.h>
 
 #include <asm/mach/arch.h>
 #include <asm/mach/map.h>
@@ -156,6 +158,78 @@ static struct platform_device tq210_ds18b20_device = {
 };
 #endif
 
+#ifdef CONFIG_KEYBOARD_GPIO
+static struct gpio_keys_button gpio_buttons[] = {
+	{
+		.gpio		= S5PV210_GPH0(0),
+		.code		= KEY_UP,
+		.desc		= "up",
+		.active_low	= 1,
+		.debounce_interval = 50,
+	},
+	{
+		.gpio		= S5PV210_GPH0(1),
+		.code		= KEY_DOWN,
+		.desc		= "down",
+		.active_low	= 1,
+		.debounce_interval = 50,
+	},
+	{
+		.gpio		= S5PV210_GPH0(2),
+		.code		= KEY_LEFT,
+		.desc		= "left",
+		.active_low	= 1,
+		.debounce_interval = 50,
+	},
+	{
+		.gpio		= S5PV210_GPH0(3),
+		.code		= KEY_RIGHT,
+		.desc		= "right",
+		.active_low	= 1,
+		.debounce_interval = 50,
+	},
+	{
+		.gpio		= S5PV210_GPH0(4),
+		.code		= KEY_ENTER,
+		.desc		= "enter",
+		.active_low	= 1,
+		.debounce_interval = 50,
+	},
+	{
+		.gpio		= S5PV210_GPH0(5),
+		.code		= KEY_ESC,
+		.desc		= "esc",
+		.active_low	= 1,
+		.debounce_interval = 50,
+	},
+	{
+		.gpio		= S5PV210_GPH2(6),
+		.code		= KEY_HOME,
+		.desc		= "home",
+		.active_low	= 1,
+		.debounce_interval = 50,
+	},
+	{
+		.gpio		= S5PV210_GPH2(7),
+		.code		= KEY_POWER,
+		.desc		= "power",
+		.active_low	= 1,
+		.debounce_interval = 50,
+	},
+};
+static struct gpio_keys_platform_data gpio_button_data = {
+	.buttons	= gpio_buttons,
+	.nbuttons	= ARRAY_SIZE(gpio_buttons),
+};
+static struct platform_device s3c_device_gpio_button = {
+	.name		= "gpio-keys",
+	.id		= -1,
+	.dev		= {
+		.platform_data	= &gpio_button_data,
+	}
+};
+#endif
+
 static struct platform_device *tq210_devices[] __initdata = {
 #ifdef CONFIG_DM9000
 	&tq210_dm9000,
@@ -172,6 +246,9 @@ static struct platform_device *tq210_devices[] __initdata = {
 #endif
 #ifdef CONFIG_W1_SLAVE_THERM
 	&tq210_ds18b20_device,
+#endif
+#ifdef CONFIG_KEYBOARD_GPIO
+	&s3c_device_gpio_button,
 #endif
 };
 
