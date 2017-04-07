@@ -389,6 +389,9 @@ static struct platform_device *tq210_devices[] __initdata = {
 	&s3c_device_timer[1],
 	&tq210_pwm_beeper,
 #endif
+#ifdef CONFIG_S3C_DEV_RTC
+	&s3c_device_rtc,
+#endif
 };
 
 static void __init tq210_machine_init(void)
