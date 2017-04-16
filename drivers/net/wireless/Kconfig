@@ -17,6 +17,14 @@ menuconfig WLAN
 
 if WLAN
 
+config USB_RT3070
+	tristate "rt3070 usb dongle"
+	depends on USB
+	select WIRELESS_EXT
+	select WEXT_PRIV
+	---help---
+	  Say Y if you want to use wireless LAN adapters based on the rt3070 chip.
+
 config PCMCIA_RAYCS
 	tristate "Aviator/Raytheon 2.4GHz wireless support"
 	depends on PCMCIA
