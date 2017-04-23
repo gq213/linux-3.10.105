@@ -256,6 +256,9 @@ static struct platform_device *sate210_devices[] __initdata = {
 #ifdef CONFIG_LEDS_GPIO
 	&sate210_device_led,
 #endif
+#ifdef CONFIG_S3C_DEV_RTC
+	&s3c_device_rtc,
+#endif
 };
 
 static void __init sate210_machine_init(void)
