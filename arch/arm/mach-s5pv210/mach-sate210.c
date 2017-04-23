@@ -8,6 +8,7 @@
 #include <linux/i2c.h>
 #include <linux/input.h>
 #include <linux/gpio_keys.h>
+#include <linux/leds.h>
 
 #include <asm/mach/arch.h>
 #include <asm/mach/map.h>
@@ -200,6 +201,36 @@ static void __init gpio_button_init(void)
 }
 #endif
 
+#ifdef CONFIG_LEDS_GPIO
+static struct gpio_led sate210_leds[] = {
+	[0] = {
+		.name			= "led1",
+		.default_trigger	= "heartbeat",
+		.gpio			= S5PV210_GPH0(7),
+		.active_low		= 0,
+		.default_state	= LEDS_GPIO_DEFSTATE_OFF,
+	},
+	[1] = {
+		.name			= "led2",
+		.default_trigger	= "timer",
+		.gpio			= S5PV210_GPH1(0),
+		.active_low		= 0,
+		.default_state	= LEDS_GPIO_DEFSTATE_OFF,
+	},
+};
+static struct gpio_led_platform_data sate210_gpio_led_data = {
+	.leds		= sate210_leds,
+	.num_leds	= ARRAY_SIZE(sate210_leds),
+};
+static struct platform_device sate210_device_led= {
+	.name		= "leds-gpio",
+	.id		= -1,
+	.dev		= {
+		.platform_data = &sate210_gpio_led_data,
+	},
+};
+#endif
+
 static struct platform_device *sate210_devices[] __initdata = {
 #ifdef CONFIG_DM9000
 	&sate210_dm9000,
@@ -221,6 +252,9 @@ static struct platform_device *sate210_devices[] __initdata = {
 #endif
 #ifdef CONFIG_KEYBOARD_GPIO
 	&s3c_device_gpio_button,
+#endif
+#ifdef CONFIG_LEDS_GPIO
+	&sate210_device_led,
 #endif
 };
 
