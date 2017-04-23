@@ -6,6 +6,8 @@
 #include <linux/dm9000.h>
 #include <linux/gpio.h>
 #include <linux/i2c.h>
+#include <linux/input.h>
+#include <linux/gpio_keys.h>
 
 #include <asm/mach/arch.h>
 #include <asm/mach/map.h>
@@ -138,6 +140,66 @@ static void __init sate210_ehci_init(void)
 }
 #endif
 
+#ifdef CONFIG_KEYBOARD_GPIO
+static struct gpio_keys_button gpio_buttons[] = {
+	{
+		.gpio		= S5PV210_GPH0(1),
+		.code		= KEY_UP,
+		.desc		= "up",
+		.active_low	= 1,
+		.debounce_interval = 50,
+	},
+	{
+		.gpio		= S5PV210_GPH0(2),
+		.code		= KEY_DOWN,
+		.desc		= "down",
+		.active_low	= 1,
+		.debounce_interval = 50,
+	},
+	{
+		.gpio		= S5PV210_GPH0(3),
+		.code		= KEY_ENTER,
+		.desc		= "enter",
+		.active_low	= 1,
+		.debounce_interval = 50,
+	},
+	{
+		.gpio		= S5PV210_GPH0(4),
+		.code		= KEY_ESC,
+		.desc		= "esc",
+		.active_low	= 1,
+		.debounce_interval = 50,
+	},
+	{
+		.gpio		= S5PV210_GPH0(6),
+		.code		= KEY_HOME,
+		.desc		= "home",
+		.active_low	= 1,
+		.debounce_interval = 50,
+	},
+};
+static struct gpio_keys_platform_data gpio_button_data = {
+	.buttons	= gpio_buttons,
+	.nbuttons	= ARRAY_SIZE(gpio_buttons),
+};
+static struct platform_device s3c_device_gpio_button = {
+	.name		= "gpio-keys",
+	.id		= -1,
+	.dev		= {
+		.platform_data	= &gpio_button_data,
+	}
+};
+
+static void __init gpio_button_init(void)
+{
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(gpio_buttons); i++) {
+		s3c_gpio_setpull(gpio_buttons[i].gpio, S3C_GPIO_PULL_UP);
+	}
+}
+#endif
+
 static struct platform_device *sate210_devices[] __initdata = {
 #ifdef CONFIG_DM9000
 	&sate210_dm9000,
@@ -156,6 +218,9 @@ static struct platform_device *sate210_devices[] __initdata = {
 #endif
 #ifdef CONFIG_S5P_DEV_USB_EHCI
 	&s5p_device_ehci,
+#endif
+#ifdef CONFIG_KEYBOARD_GPIO
+	&s3c_device_gpio_button,
 #endif
 };
 
@@ -177,6 +242,9 @@ static void __init sate210_machine_init(void)
 #endif
 #ifdef CONFIG_S5P_DEV_USB_EHCI
 	sate210_ehci_init();
+#endif
+#ifdef CONFIG_KEYBOARD_GPIO
+	gpio_button_init();
 #endif
 
 	platform_add_devices(sate210_devices, ARRAY_SIZE(sate210_devices));
