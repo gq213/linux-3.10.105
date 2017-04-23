@@ -24,6 +24,7 @@
 #include <plat/regs-srom.h>
 #include <plat/sdhci.h>
 #include <linux/platform_data/i2c-s3c2410.h>
+#include <linux/platform_data/usb-ehci-s5p.h>
 
 #include "common.h"
 
@@ -127,6 +128,16 @@ static struct i2c_board_info sate210_i2c_devs1[] __initdata = {
 };
 #endif
 
+#ifdef CONFIG_S5P_DEV_USB_EHCI
+static struct s5p_ehci_platdata sate210_ehci_pdata;
+static void __init sate210_ehci_init(void)
+{
+	struct s5p_ehci_platdata *pdata = &sate210_ehci_pdata;
+
+	s5p_ehci_set_platdata(pdata);
+}
+#endif
+
 static struct platform_device *sate210_devices[] __initdata = {
 #ifdef CONFIG_DM9000
 	&sate210_dm9000,
@@ -142,6 +153,9 @@ static struct platform_device *sate210_devices[] __initdata = {
 #endif
 #ifdef CONFIG_SND_S5PV210_I2S
 	&s5pv210_device_iis0,
+#endif
+#ifdef CONFIG_S5P_DEV_USB_EHCI
+	&s5p_device_ehci,
 #endif
 };
 
@@ -160,6 +174,9 @@ static void __init sate210_machine_init(void)
 	s3c_i2c1_set_platdata(NULL);
 	i2c_register_board_info(1, sate210_i2c_devs1,
 			ARRAY_SIZE(sate210_i2c_devs1));
+#endif
+#ifdef CONFIG_S5P_DEV_USB_EHCI
+	sate210_ehci_init();
 #endif
 
 	platform_add_devices(sate210_devices, ARRAY_SIZE(sate210_devices));
