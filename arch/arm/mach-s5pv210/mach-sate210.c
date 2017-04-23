@@ -5,6 +5,7 @@
 #include <linux/serial_s3c.h>
 #include <linux/dm9000.h>
 #include <linux/gpio.h>
+#include <linux/i2c.h>
 
 #include <asm/mach/arch.h>
 #include <asm/mach/map.h>
@@ -22,6 +23,7 @@
 #include <plat/gpio-cfg.h>
 #include <plat/regs-srom.h>
 #include <plat/sdhci.h>
+#include <linux/platform_data/i2c-s3c2410.h>
 
 #include "common.h"
 
@@ -117,6 +119,14 @@ static struct s3c_sdhci_platdata sate210_hsmmc23_data __initdata = {
 };
 #endif
 
+#ifdef CONFIG_S3C_DEV_I2C1
+static struct i2c_board_info sate210_i2c_devs1[] __initdata = {
+#ifdef CONFIG_SND_SOC_WM8960
+	{ I2C_BOARD_INFO("wm8960", 0x1a), },
+#endif
+};
+#endif
+
 static struct platform_device *sate210_devices[] __initdata = {
 #ifdef CONFIG_DM9000
 	&sate210_dm9000,
@@ -126,6 +136,12 @@ static struct platform_device *sate210_devices[] __initdata = {
 #endif
 #ifdef CONFIG_S3C_DEV_HSMMC3
 	&s3c_device_hsmmc3,
+#endif
+#ifdef CONFIG_S3C_DEV_I2C1
+	&s3c_device_i2c1,
+#endif
+#ifdef CONFIG_SND_S5PV210_I2S
+	&s5pv210_device_iis0,
 #endif
 };
 
@@ -139,6 +155,11 @@ static void __init sate210_machine_init(void)
 #endif
 #ifdef CONFIG_S3C_DEV_HSMMC3
 	s3c_sdhci3_set_platdata(&sate210_hsmmc23_data);
+#endif
+#ifdef CONFIG_S3C_DEV_I2C1
+	s3c_i2c1_set_platdata(NULL);
+	i2c_register_board_info(1, sate210_i2c_devs1,
+			ARRAY_SIZE(sate210_i2c_devs1));
 #endif
 
 	platform_add_devices(sate210_devices, ARRAY_SIZE(sate210_devices));

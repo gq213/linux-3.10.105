@@ -151,7 +151,11 @@ static const struct snd_soc_dapm_route smdk_dapm_routes[] = {
 	{"Speaker", NULL, "SPK_RN"},
 	{"HP", NULL, "HP_L"},
 	{"HP", NULL, "HP_R"},
+#ifdef CONFIG_MACH_SATE210
+	{"RINPUT2", NULL, "MicIn"},
+#else
 	{"LINPUT1", NULL, "MicIn"},
+#endif
 };
 
 static int smdk_wm8960_init_paiftx(struct snd_soc_pcm_runtime *rtd)
@@ -174,7 +178,11 @@ static struct snd_soc_dai_link smdk_dai[] = {
 		.cpu_dai_name = "samsung-i2s.0",
 		.codec_dai_name = "wm8960-hifi",
 		.platform_name = "samsung-i2s.0",
+#ifdef CONFIG_MACH_SATE210
+		.codec_name = "wm8960.1-001a",
+#else
 		.codec_name = "wm8960.0-001a",
+#endif
 		.ops = &smdk_ops,
 	},
 	{ /* Primary Capture i/f */
@@ -183,7 +191,11 @@ static struct snd_soc_dai_link smdk_dai[] = {
 		.cpu_dai_name = "samsung-i2s.0",
 		.codec_dai_name = "wm8960-hifi",
 		.platform_name = "samsung-i2s.0",
+#ifdef CONFIG_MACH_SATE210
+		.codec_name = "wm8960.1-001a",
+#else
 		.codec_name = "wm8960.0-001a",
+#endif
 		.init = smdk_wm8960_init_paiftx,
 		.ops = &smdk_ops,
 	},
