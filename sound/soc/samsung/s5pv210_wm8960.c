@@ -138,39 +138,6 @@ static struct snd_soc_ops smdk_ops = {
 	.hw_params = smdk_hw_params,
 };
 
-static const struct snd_soc_dapm_widget smdk_dapm_widgets[] = {
-	SND_SOC_DAPM_SPK("Speaker", NULL),
-	SND_SOC_DAPM_HP("HP", NULL),
-	SND_SOC_DAPM_MIC("MicIn", NULL),
-};
-
-static const struct snd_soc_dapm_route smdk_dapm_routes[] = {
-	{"Speaker", NULL, "SPK_LP"},
-	{"Speaker", NULL, "SPK_LN"},
-	{"Speaker", NULL, "SPK_RP"},
-	{"Speaker", NULL, "SPK_RN"},
-	{"HP", NULL, "HP_L"},
-	{"HP", NULL, "HP_R"},
-#ifdef CONFIG_MACH_SATE210
-	{"RINPUT2", NULL, "MicIn"},
-#else
-	{"LINPUT1", NULL, "MicIn"},
-#endif
-};
-
-static int smdk_wm8960_init_paiftx(struct snd_soc_pcm_runtime *rtd)
-{
-	struct snd_soc_codec *codec = rtd->codec;
-	struct snd_soc_dapm_context *dapm = &codec->dapm;
-
-	/* Enabling the microphone requires the fitting of a 0R
-	 * resistor to connect the line from the microphone jack.
-	 */
-	snd_soc_dapm_disable_pin(dapm, "MicIn");
-
-	return 0;
-}
-
 static struct snd_soc_dai_link smdk_dai[] = {
 	{ /* Primary Playback i/f */
 		.name = "WM8960 PAIF RX",
@@ -196,7 +163,6 @@ static struct snd_soc_dai_link smdk_dai[] = {
 #else
 		.codec_name = "wm8960.0-001a",
 #endif
-		.init = smdk_wm8960_init_paiftx,
 		.ops = &smdk_ops,
 	},
 };
@@ -206,11 +172,6 @@ static struct snd_soc_card smdk = {
 	.owner = THIS_MODULE,
 	.dai_link = smdk_dai,
 	.num_links = ARRAY_SIZE(smdk_dai),
-
-	.dapm_widgets = smdk_dapm_widgets,
-	.num_dapm_widgets = ARRAY_SIZE(smdk_dapm_widgets),
-	.dapm_routes = smdk_dapm_routes,
-	.num_dapm_routes = ARRAY_SIZE(smdk_dapm_routes),
 };
 
 static struct platform_device *smdk_snd_device;
