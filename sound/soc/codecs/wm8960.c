@@ -303,6 +303,67 @@ static void wm8960_mode_play(struct snd_soc_codec *codec)
 	printk("%s(): ok\n", __FUNCTION__);
 }
 
+#define TEST_LOOPBACK 0
+
+#if TEST_LOOPBACK
+static void wm8960_mode_loopback(struct snd_soc_codec *codec)
+{
+	/*
+	WM8960_INBMIX1
+	bit[3:1](LIN2BOOST)
+	111 6db
+	*/
+	snd_soc_update_bits(codec, WM8960_INBMIX1, 0x0e, 0x0e);		//0x2b
+
+	/*
+	WM8960_POWER1
+	bit5(AINL),bit1(MICB)
+	1,1
+	*/
+	snd_soc_update_bits(codec, WM8960_POWER1, 0x22, 0x22);		//0x19
+
+	/*
+	WM8960_ADDCTL4
+	bit0(MBSEL)
+	1/0
+	*/
+	snd_soc_update_bits(codec, WM8960_ADDCTL4, 0x1, 0x0);		//0x30
+
+	/*
+	WM8960_BYPASS1
+	bit7(LB2LO)
+	1
+	bit[6:4](LB2LOVOL)
+	000 0db
+	*/
+	snd_soc_update_bits(codec, WM8960_BYPASS1, 0xf0, 0x80);		//0x2d
+
+	/*
+	Output Mixer Enable Control
+	WM8960_POWER3
+	bit3(LOMIX),bit2(ROMIX)
+	1,1
+	*/
+	snd_soc_update_bits(codec, WM8960_POWER3, 0xc, 0xc);		//0x2f
+
+	/*
+	Headphone Volume
+	WM8960_LOUT1
+	bit[6:0](LOUT1VOL)
+	;
+	WM8960_ROUT1
+	bit[6:0](ROUT1VOL)
+	;
+	*/
+	snd_soc_update_bits(codec, WM8960_LOUT1, 0x17f, 0x17f);		//0x2 100%
+	snd_soc_update_bits(codec, WM8960_ROUT1, 0x17f, 0x17f);		//0x3 100%
+
+	wm8960_mode = NONE;
+
+	printk("%s(): ok\n", __FUNCTION__);
+}
+#endif
+
 static int wm8960_startup(struct snd_pcm_substream *substream,
 	  struct snd_soc_dai *dai)
 {
@@ -445,6 +506,10 @@ static int wm8960_probe(struct snd_soc_codec *codec)
 	}
 
 	wm8960_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
+
+#if TEST_LOOPBACK
+	wm8960_mode_loopback(codec);
+#endif
 
 	return 0;
 }
