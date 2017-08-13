@@ -115,6 +115,21 @@ struct wm8960_priv {
 
 #define wm8960_reset(c)	snd_soc_write(c, WM8960_RESET, 0)
 
+static const DECLARE_TLV_DB_SCALE(adc_tlv, -9700, 50, 1);	// [7:0] -97~30 0
+static const DECLARE_TLV_DB_SCALE(dac_tlv, -12700, 50, 1);	// [7:0] -127~0 0
+static const DECLARE_TLV_DB_SCALE(out_tlv, -12100, 100, 1);	// [6:0] -121~6(-73~6) -121
+
+static const struct snd_kcontrol_new wm8960_snd_controls[] = {
+SOC_DOUBLE_R_TLV("Capture Volume", WM8960_LADC, WM8960_RADC,
+		 0, 255, 0, adc_tlv),
+SOC_DOUBLE_R_TLV("Playback Volume", WM8960_LDAC, WM8960_RDAC,
+		 0, 255, 0, dac_tlv),
+SOC_DOUBLE_R_TLV("Headphone Playback Volume", WM8960_LOUT1, WM8960_ROUT1,
+		 0, 127, 0, out_tlv),
+
+SOC_SINGLE("DAC Mute", WM8960_DACCTL1, 3, 1, 0),
+};
+
 static int wm8960_set_dai_fmt(struct snd_soc_dai *codec_dai,
 		unsigned int fmt)
 {
@@ -487,6 +502,9 @@ static int wm8960_probe(struct snd_soc_codec *codec)
 	*/
 	snd_soc_update_bits(codec, WM8960_LOUT1, 0x17f, 0x158);		//0x2 45%
 	snd_soc_update_bits(codec, WM8960_ROUT1, 0x17f, 0x158);		//0x3 45%
+
+	snd_soc_add_codec_controls(codec, wm8960_snd_controls,
+				     ARRAY_SIZE(wm8960_snd_controls));
 
 	return 0;
 }
