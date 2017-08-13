@@ -243,181 +243,6 @@ static int wm8960_mute(struct snd_soc_dai *dai, int mute)
 	return 0;
 }
 
-typedef enum {
-	NONE,
-	PLAY,
-	RECORD,
-} tMode;
-
-static tMode wm8960_mode = NONE;
-
-static void wm8960_mode_play(struct snd_soc_codec *codec)
-{
-	if (wm8960_mode == PLAY)
-		return;
-
-	// Startup Order :- DAC --> Mixers --> Output PGA --> Digital Unmute
-
-	/*
-	Left/Right Channel DAC Enable
-	WM8960_POWER2
-	bit8(DACL),bit7(DACR)
-	1,1
-	*/
-	snd_soc_update_bits(codec, WM8960_POWER2, 0x180, 0x180);	//0x1a
-
-	/*
-	DAC to Output Mixer
-	WM8960_LOUTMIX
-	bit8(LD2LO)
-	1
-	WM8960_ROUTMIX
-	bit8(RD2RO)
-	1
-	*/
-	snd_soc_update_bits(codec, WM8960_LOUTMIX, 0x100, 0x100);	//0x22
-	snd_soc_update_bits(codec, WM8960_ROUTMIX, 0x100, 0x100);	//0x25
-
-	/*
-	Output Mixer Enable Control
-	WM8960_POWER3
-	bit3(LOMIX),bit2(ROMIX)
-	1,1
-	*/
-	snd_soc_update_bits(codec, WM8960_POWER3, 0xc, 0xc);		//0x2f
-
-	/*
-	Headphone Volume
-	WM8960_LOUT1
-	bit[6:0](LOUT1VOL)
-	;
-	WM8960_ROUT1
-	bit[6:0](ROUT1VOL)
-	;
-	*/
-	snd_soc_update_bits(codec, WM8960_LOUT1, 0x17f, 0x158);		//0x2 45%
-	snd_soc_update_bits(codec, WM8960_ROUT1, 0x17f, 0x158);		//0x3 45%
-
-	wm8960_mode = PLAY;
-
-	printk("%s(): ok\n", __FUNCTION__);
-}
-
-static void wm8960_mode_record(struct snd_soc_codec *codec)
-{
-	if (wm8960_mode == RECORD)
-		return;
-
-	// Startup Order - Input PGA --> Mixers --> ADC
-
-	/*
-	WM8960_ADDCTL4
-	bit0(MBSEL)
-	1/0
-	*/
-	snd_soc_update_bits(codec, WM8960_ADDCTL4, 0x1, 0x0);		//0x30
-
-	/*
-	WM8960_POWER1
-	bit1(MICB)
-	1
-	*/
-	snd_soc_update_bits(codec, WM8960_POWER1, 0x2, 0x2);		//0x19
-
-	/*
-	WM8960_INBMIX1
-	bit[3:1](LIN2BOOST)
-	111 6db
-	*/
-	snd_soc_update_bits(codec, WM8960_INBMIX1, 0xe, 0xe);		//0x2b
-
-	/*
-	WM8960_POWER1
-	bit5(AINL)
-	1
-	*/
-	snd_soc_update_bits(codec, WM8960_POWER1, 0x20, 0x20);		//0x19
-
-	/*
-	WM8960_POWER1
-	bit3(ADCL)
-	1
-	*/
-	snd_soc_update_bits(codec, WM8960_POWER1, 0x8, 0x8);		//0x19
-
-	/*
-	WM8960_IFACE2
-	bit6(ALRCGPIO)
-	1
-	*/
-	snd_soc_update_bits(codec, WM8960_IFACE2, 0x40, 0x40);		//0x09
-
-	wm8960_mode = RECORD;
-
-	printk("%s(): ok\n", __FUNCTION__);
-}
-
-#define TEST_LOOPBACK 0
-
-#if TEST_LOOPBACK
-static void wm8960_mode_loopback(struct snd_soc_codec *codec)
-{
-	/*
-	WM8960_INBMIX1
-	bit[3:1](LIN2BOOST)
-	111 6db
-	*/
-	snd_soc_update_bits(codec, WM8960_INBMIX1, 0xe, 0xe);		//0x2b
-
-	/*
-	WM8960_POWER1
-	bit5(AINL),bit1(MICB)
-	1,1
-	*/
-	snd_soc_update_bits(codec, WM8960_POWER1, 0x22, 0x22);		//0x19
-
-	/*
-	WM8960_ADDCTL4
-	bit0(MBSEL)
-	1/0
-	*/
-	snd_soc_update_bits(codec, WM8960_ADDCTL4, 0x1, 0x0);		//0x30
-
-	/*
-	WM8960_BYPASS1
-	bit7(LB2LO)
-	1
-	bit[6:4](LB2LOVOL)
-	000 0db
-	*/
-	snd_soc_update_bits(codec, WM8960_BYPASS1, 0xf0, 0x80);		//0x2d
-
-	/*
-	Output Mixer Enable Control
-	WM8960_POWER3
-	bit3(LOMIX),bit2(ROMIX)
-	1,1
-	*/
-	snd_soc_update_bits(codec, WM8960_POWER3, 0xc, 0xc);		//0x2f
-
-	/*
-	Headphone Volume
-	WM8960_LOUT1
-	bit[6:0](LOUT1VOL)
-	;
-	WM8960_ROUT1
-	bit[6:0](ROUT1VOL)
-	;
-	*/
-	snd_soc_update_bits(codec, WM8960_LOUT1, 0x17f, 0x17f);		//0x2 100%
-	snd_soc_update_bits(codec, WM8960_ROUT1, 0x17f, 0x17f);		//0x3 100%
-
-	wm8960_mode = NONE;
-
-	printk("%s(): ok\n", __FUNCTION__);
-}
-#endif
-
 static int wm8960_startup(struct snd_pcm_substream *substream,
 	  struct snd_soc_dai *dai)
 {
@@ -428,11 +253,11 @@ static int wm8960_startup(struct snd_pcm_substream *substream,
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
 		printk("%s(): play\n", __FUNCTION__);
 
-		wm8960_mode_play(codec);
+		snd_soc_update_bits(codec, WM8960_POWER2, 0x180, 0x180);	//0x1a
 	} else {
 		printk("%s(): record\n", __FUNCTION__);
 
-		wm8960_mode_record(codec);
+		snd_soc_update_bits(codec, WM8960_POWER1, 0x8, 0x8);		//0x19
 	}
 
 	return 0;
@@ -441,7 +266,19 @@ static int wm8960_startup(struct snd_pcm_substream *substream,
 static void wm8960_shutdown(struct snd_pcm_substream *substream,
 	struct snd_soc_dai *dai)
 {
+	struct snd_soc_codec *codec = dai->codec;
+
 	printk("%s(): substream->stream=%d\n", __FUNCTION__, substream->stream);
+
+	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
+		printk("%s(): play\n", __FUNCTION__);
+
+		snd_soc_update_bits(codec, WM8960_POWER2, 0x180, 0);		//0x1a
+	} else {
+		printk("%s(): record\n", __FUNCTION__);
+
+		snd_soc_update_bits(codec, WM8960_POWER1, 0x8, 0);		//0x19
+	}
 }
 
 static const char *bias[] = {
@@ -563,9 +400,93 @@ static int wm8960_probe(struct snd_soc_codec *codec)
 
 	wm8960_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
 
-#if TEST_LOOPBACK
-	wm8960_mode_loopback(codec);
-#endif
+	// sdc/dac lrc
+
+	/*
+	WM8960_IFACE2
+	bit6(ALRCGPIO)
+	1
+	*/
+	snd_soc_update_bits(codec, WM8960_IFACE2, 0x40, 0x40);		//0x09
+
+	// Startup Order - Input PGA --> Mixers --> ADC
+
+	/*
+	WM8960_ADDCTL4
+	bit0(MBSEL)
+	1/0
+	*/
+	snd_soc_update_bits(codec, WM8960_ADDCTL4, 0x1, 0);		//0x30
+
+	/*
+	WM8960_POWER1
+	bit1(MICB)
+	1
+	*/
+	snd_soc_update_bits(codec, WM8960_POWER1, 0x2, 0x2);		//0x19
+
+	/*
+	WM8960_INBMIX1
+	bit[3:1](LIN2BOOST)
+	111 6db
+	*/
+	snd_soc_update_bits(codec, WM8960_INBMIX1, 0xe, 0xe);		//0x2b
+
+	/*
+	WM8960_POWER1
+	bit5(AINL)
+	1
+	*/
+	snd_soc_update_bits(codec, WM8960_POWER1, 0x20, 0x20);		//0x19
+
+	/*
+	WM8960_POWER1
+	bit3(ADCL)
+	1
+	*/
+	//snd_soc_update_bits(codec, WM8960_POWER1, 0x8, 0x8);		//0x19
+
+	// Startup Order :- DAC --> Mixers --> Output PGA --> Digital Unmute
+
+	/*
+	Left/Right Channel DAC Enable
+	WM8960_POWER2
+	bit8(DACL),bit7(DACR)
+	1,1
+	*/
+	//snd_soc_update_bits(codec, WM8960_POWER2, 0x180, 0x180);	//0x1a
+
+	/*
+	DAC to Output Mixer
+	WM8960_LOUTMIX
+	bit8(LD2LO)
+	1
+	WM8960_ROUTMIX
+	bit8(RD2RO)
+	1
+	*/
+	snd_soc_update_bits(codec, WM8960_LOUTMIX, 0x100, 0x100);	//0x22
+	snd_soc_update_bits(codec, WM8960_ROUTMIX, 0x100, 0x100);	//0x25
+
+	/*
+	Output Mixer Enable Control
+	WM8960_POWER3
+	bit3(LOMIX),bit2(ROMIX)
+	1,1
+	*/
+	snd_soc_update_bits(codec, WM8960_POWER3, 0xc, 0xc);		//0x2f
+
+	/*
+	Headphone Volume
+	WM8960_LOUT1
+	bit[6:0](LOUT1VOL)
+	;
+	WM8960_ROUT1
+	bit[6:0](ROUT1VOL)
+	;
+	*/
+	snd_soc_update_bits(codec, WM8960_LOUT1, 0x17f, 0x158);		//0x2 45%
+	snd_soc_update_bits(codec, WM8960_ROUT1, 0x17f, 0x158);		//0x3 45%
 
 	return 0;
 }
