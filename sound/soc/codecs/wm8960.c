@@ -303,6 +303,60 @@ static void wm8960_mode_play(struct snd_soc_codec *codec)
 	printk("%s(): ok\n", __FUNCTION__);
 }
 
+static void wm8960_mode_record(struct snd_soc_codec *codec)
+{
+	if (wm8960_mode == RECORD)
+		return;
+
+	// Startup Order - Input PGA --> Mixers --> ADC
+
+	/*
+	WM8960_ADDCTL4
+	bit0(MBSEL)
+	1/0
+	*/
+	snd_soc_update_bits(codec, WM8960_ADDCTL4, 0x1, 0x0);		//0x30
+
+	/*
+	WM8960_POWER1
+	bit1(MICB)
+	1
+	*/
+	snd_soc_update_bits(codec, WM8960_POWER1, 0x2, 0x2);		//0x19
+
+	/*
+	WM8960_INBMIX1
+	bit[3:1](LIN2BOOST)
+	111 6db
+	*/
+	snd_soc_update_bits(codec, WM8960_INBMIX1, 0xe, 0xe);		//0x2b
+
+	/*
+	WM8960_POWER1
+	bit5(AINL)
+	1
+	*/
+	snd_soc_update_bits(codec, WM8960_POWER1, 0x20, 0x20);		//0x19
+
+	/*
+	WM8960_POWER1
+	bit3(ADCL)
+	1
+	*/
+	snd_soc_update_bits(codec, WM8960_POWER1, 0x8, 0x8);		//0x19
+
+	/*
+	WM8960_IFACE2
+	bit6(ALRCGPIO)
+	1
+	*/
+	snd_soc_update_bits(codec, WM8960_IFACE2, 0x40, 0x40);		//0x09
+
+	wm8960_mode = RECORD;
+
+	printk("%s(): ok\n", __FUNCTION__);
+}
+
 #define TEST_LOOPBACK 0
 
 #if TEST_LOOPBACK
@@ -313,7 +367,7 @@ static void wm8960_mode_loopback(struct snd_soc_codec *codec)
 	bit[3:1](LIN2BOOST)
 	111 6db
 	*/
-	snd_soc_update_bits(codec, WM8960_INBMIX1, 0x0e, 0x0e);		//0x2b
+	snd_soc_update_bits(codec, WM8960_INBMIX1, 0xe, 0xe);		//0x2b
 
 	/*
 	WM8960_POWER1
@@ -377,6 +431,8 @@ static int wm8960_startup(struct snd_pcm_substream *substream,
 		wm8960_mode_play(codec);
 	} else {
 		printk("%s(): record\n", __FUNCTION__);
+
+		wm8960_mode_record(codec);
 	}
 
 	return 0;
