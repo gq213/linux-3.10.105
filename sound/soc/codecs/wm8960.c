@@ -439,14 +439,35 @@ static int wm8960_probe(struct snd_soc_codec *codec)
 	1
 	*/
 	snd_soc_update_bits(codec, WM8960_POWER1, 0x2, 0x2);		//0x19
-
+#ifdef CONFIG_MACH_SATE210
 	/*
 	WM8960_INBMIX1
 	bit[3:1](LIN2BOOST)
 	111 6db
 	*/
 	snd_soc_update_bits(codec, WM8960_INBMIX1, 0xe, 0xe);		//0x2b
+#else
+	/*
+	WM8960_LINVOL
+	bit7(LINMUTE),bit[5:0](LINVOL)
+	0,111111 30db
+	*/
+	snd_soc_update_bits(codec, WM8960_LINVOL, 0xbf, 0x3f);		//0x00
 
+	/*
+	WM8960_POWER3
+	bit5(LMIC)
+	1
+	*/
+	snd_soc_update_bits(codec, WM8960_POWER3, 0x20, 0x20);		//0x2f
+
+	/*
+	WM8960_LINPATH
+	bit[5:4](LMICBOOST),bit3(LMIC2B)
+	1,11 29db
+	*/
+	snd_soc_update_bits(codec, WM8960_LINPATH, 0x38, 0x38);		//0x20
+#endif
 	/*
 	WM8960_POWER1
 	bit5(AINL)
