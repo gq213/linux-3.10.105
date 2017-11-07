@@ -28,6 +28,8 @@
 
 #include <video/samsung_fimd.h>
 
+#include <mach/regs-clock.h>
+
 /* This driver will export a number of framebuffer interfaces depending
  * on the configuration passed in via the platform data. Each fb instance
  * maps to a hardware window. Currently there is no support for runtime
@@ -361,7 +363,7 @@ static int s3c_fb_calc_pixclk(struct s3c_fb *sfb, unsigned int pixclk)
 	do_div(tmp, 1000000000UL);
 	result = (unsigned int)tmp / 1000;
 
-	dev_dbg(sfb->dev, "pixclk=%u, clk=%lu, div=%d (%lu)\n",
+	dev_err(sfb->dev, "pixclk=%u, clk=%lu, div=%d (%lu)\n",
 		pixclk, clk, result, result ? clk / result : clk);
 
 	return result;
@@ -1407,12 +1409,17 @@ static int s3c_fb_probe(struct platform_device *pdev)
 	clk_prepare_enable(sfb->bus_clk);
 
 	if (!sfb->variant.has_clksel) {
-		sfb->lcd_clk = devm_clk_get(dev, "sclk_fimd");
+		writel(readl(S5P_CLK_SRC0) | (1<<12), S5P_CLK_SRC0);
+		writel(readl(S5P_CLK_SRC1) | (8<<20), S5P_CLK_SRC1);
+
+		sfb->lcd_clk = devm_clk_get(dev, "fout_vpll");
 		if (IS_ERR(sfb->lcd_clk)) {
 			dev_err(dev, "failed to get lcd clock\n");
 			ret = PTR_ERR(sfb->lcd_clk);
 			goto err_bus_clk;
 		}
+
+		clk_set_rate(sfb->lcd_clk, pd->clk);
 
 		clk_prepare_enable(sfb->lcd_clk);
 	}
@@ -1860,7 +1867,7 @@ static struct s3c_fb_driverdata s3c_fb_data_s5pv210 = {
 
 		.has_shadowcon	= 1,
 		.has_blendcon	= 1,
-		.has_clksel	= 1,
+		.has_clksel	= 0,
 		.has_fixvclk	= 1,
 	},
 	.win[0]	= &s3c_fb_data_s5p_wins[0],

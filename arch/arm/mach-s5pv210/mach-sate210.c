@@ -9,6 +9,7 @@
 #include <linux/input.h>
 #include <linux/gpio_keys.h>
 #include <linux/leds.h>
+#include <linux/fb.h>
 
 #include <asm/mach/arch.h>
 #include <asm/mach/map.h>
@@ -26,8 +27,10 @@
 #include <plat/gpio-cfg.h>
 #include <plat/regs-srom.h>
 #include <plat/sdhci.h>
+#include <plat/fb.h>
 #include <linux/platform_data/i2c-s3c2410.h>
 #include <linux/platform_data/usb-ehci-s5p.h>
+#include <video/samsung_fimd.h>
 
 #include "common.h"
 
@@ -231,6 +234,45 @@ static struct platform_device sate210_device_led= {
 };
 #endif
 
+#ifdef CONFIG_FB_S3C
+static struct s3c_fb_pd_win sate210_fb_win = {
+	.max_bpp	= 32,
+	.default_bpp	= 24,
+	.xres		= 1024,
+	.yres		= 768,
+};
+
+static struct fb_videomode sate210_vga_timing = {
+	.xres		= 1024,
+	.yres		= 768,
+	.refresh	= 60,
+
+	.right_margin	= 24,
+	.hsync_len	= 136,
+	.left_margin	= 160,
+
+	.lower_margin	= 3,
+	.vsync_len	= 6,
+	.upper_margin	= 29,
+};
+
+static struct s3c_fb_platdata sate210_vga_pdata __initdata = {
+	.win[0]		= &sate210_fb_win,
+	.win[1]		= &sate210_fb_win,
+	.win[2]		= &sate210_fb_win,
+	.win[3]		= &sate210_fb_win,
+	.win[4]		= &sate210_fb_win,
+
+	.vtiming	= &sate210_vga_timing,
+	.vidcon0	= VIDCON0_CLKSEL_LCD,
+
+	.vidcon1	= VIDCON1_INV_HSYNC | VIDCON1_INV_VSYNC,
+	.clk		= 65000000,
+
+	.setup_gpio	= s5pv210_fb_gpio_setup_24bpp,
+};
+#endif
+
 static struct platform_device *sate210_devices[] __initdata = {
 #ifdef CONFIG_DM9000
 	&sate210_dm9000,
@@ -259,6 +301,9 @@ static struct platform_device *sate210_devices[] __initdata = {
 #ifdef CONFIG_S3C_DEV_RTC
 	&s3c_device_rtc,
 #endif
+#ifdef CONFIG_FB_S3C
+	&s3c_device_fb,
+#endif
 };
 
 static void __init sate210_machine_init(void)
@@ -282,6 +327,9 @@ static void __init sate210_machine_init(void)
 #endif
 #ifdef CONFIG_KEYBOARD_GPIO
 	gpio_button_init();
+#endif
+#ifdef CONFIG_FB_S3C
+	s3c_fb_set_platdata(&sate210_vga_pdata);
 #endif
 
 	platform_add_devices(sate210_devices, ARRAY_SIZE(sate210_devices));
