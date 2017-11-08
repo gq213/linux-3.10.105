@@ -51,6 +51,7 @@ struct s3c_fb_platdata {
 	u32			 vidcon1;
 
 	u32			 clk;
+	u32			 div;
 };
 
 #endif

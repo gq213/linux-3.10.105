@@ -339,37 +339,6 @@ static int s3c_fb_check_var(struct fb_var_screeninfo *var,
 }
 
 /**
- * s3c_fb_calc_pixclk() - calculate the divider to create the pixel clock.
- * @sfb: The hardware state.
- * @pixclock: The pixel clock wanted, in picoseconds.
- *
- * Given the specified pixel clock, work out the necessary divider to get
- * close to the output frequency.
- */
-static int s3c_fb_calc_pixclk(struct s3c_fb *sfb, unsigned int pixclk)
-{
-	unsigned long clk;
-	unsigned long long tmp;
-	unsigned int result;
-
-	if (sfb->variant.has_clksel)
-		clk = clk_get_rate(sfb->bus_clk);
-	else
-		clk = clk_get_rate(sfb->lcd_clk);
-
-	tmp = (unsigned long long)clk;
-	tmp *= pixclk;
-
-	do_div(tmp, 1000000000UL);
-	result = (unsigned int)tmp / 1000;
-
-	dev_err(sfb->dev, "pixclk=%u, clk=%lu, div=%d (%lu)\n",
-		pixclk, clk, result, result ? clk / result : clk);
-
-	return result;
-}
-
-/**
  * s3c_fb_align_word() - align pixel count to word boundary
  * @bpp: The number of bits per pixel
  * @pix: The value to be aligned.
@@ -1089,12 +1058,12 @@ static int s3c_fb_alloc_memory(struct s3c_fb *sfb, struct s3c_fb_win *win)
 	struct fb_info *fbi = win->fbinfo;
 	dma_addr_t map_dma;
 
-	dev_dbg(sfb->dev, "allocating memory for display\n");
+	dev_err(sfb->dev, "allocating memory for display\n");
 
 	real_size = windata->xres * windata->yres;
 	virt_size = windata->virtual_x * windata->virtual_y;
 
-	dev_dbg(sfb->dev, "real_size=%u (%u.%u), virt_size=%u (%u.%u)\n",
+	dev_err(sfb->dev, "real_size=%u (%u.%u), virt_size=%u (%u.%u)\n",
 		real_size, windata->xres, windata->yres,
 		virt_size, windata->virtual_x, windata->virtual_y);
 
@@ -1105,14 +1074,14 @@ static int s3c_fb_alloc_memory(struct s3c_fb *sfb, struct s3c_fb_win *win)
 	fbi->fix.smem_len = size;
 	size = PAGE_ALIGN(size);
 
-	dev_dbg(sfb->dev, "want %u bytes for window\n", size);
+	dev_err(sfb->dev, "want %u bytes for window\n", size);
 
 	fbi->screen_base = dma_alloc_writecombine(sfb->dev, size,
 						  &map_dma, GFP_KERNEL);
 	if (!fbi->screen_base)
 		return -ENOMEM;
 
-	dev_dbg(sfb->dev, "mapped %x to %p\n",
+	dev_err(sfb->dev, "mapped %x to %p\n",
 		(unsigned int)map_dma, fbi->screen_base);
 
 	memset(fbi->screen_base, 0x0, size);
@@ -1303,7 +1272,7 @@ static void s3c_fb_set_rgb_timing(struct s3c_fb *sfb)
 	if (!vmode->pixclock)
 		s3c_fb_missing_pixclock(vmode);
 
-	clkdiv = s3c_fb_calc_pixclk(sfb, vmode->pixclock);
+	clkdiv = sfb->pdata->div;
 
 	data = sfb->pdata->vidcon0;
 	data &= ~(VIDCON0_CLKVAL_F_MASK | VIDCON0_CLKDIR);

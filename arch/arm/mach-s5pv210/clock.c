@@ -1178,7 +1178,10 @@ static struct clk_ops s5pv210_epll_ops = {
 static u32 vpll_div[][5] = {
 	{  54000000, 6, 108, 3, 0 },
 	{ 108000000, 6, 108, 2, 0 },
-	{  65000000, 3, 65, 3, 1 },
+	{  65000000, 3,  65, 3, 1 },
+	{  71000000, 3,  71, 3, 1 },
+	{  74250000, 8, 198, 3, 1 },
+	{  80000000, 3,  80, 3, 1 },
 };
 
 static unsigned long s5pv210_vpll_get_rate(struct clk *clk)

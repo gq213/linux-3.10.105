@@ -33,6 +33,7 @@
 #include <video/samsung_fimd.h>
 
 #include "common.h"
+#include "myvga.h"
 
 /* Following are default values for UCON, ULCON and UFCON UART registers */
 #define SATE210_UCON_DEFAULT	(S3C2410_UCON_TXILEVEL |	\
@@ -238,22 +239,22 @@ static struct platform_device sate210_device_led= {
 static struct s3c_fb_pd_win sate210_fb_win = {
 	.max_bpp	= 32,
 	.default_bpp	= 24,
-	.xres		= 1024,
-	.yres		= 768,
+	.xres		= H_PIXELS,
+	.yres		= V_PIXELS,
 };
 
 static struct fb_videomode sate210_vga_timing = {
-	.xres		= 1024,
-	.yres		= 768,
-	.refresh	= 60,
+	.xres		= H_PIXELS,
+	.yres		= V_PIXELS,
+	.refresh	= REFRESH,
 
-	.right_margin	= 24,
-	.hsync_len	= 136,
-	.left_margin	= 160,
+	.right_margin	= H_FRONT,
+	.hsync_len	= H_SYNC,
+	.left_margin	= H_BACK,
 
-	.lower_margin	= 3,
-	.vsync_len	= 6,
-	.upper_margin	= 29,
+	.lower_margin	= V_FRONT,
+	.vsync_len	= V_SYNC,
+	.upper_margin	= V_BACK,
 };
 
 static struct s3c_fb_platdata sate210_vga_pdata __initdata = {
@@ -266,8 +267,9 @@ static struct s3c_fb_platdata sate210_vga_pdata __initdata = {
 	.vtiming	= &sate210_vga_timing,
 	.vidcon0	= VIDCON0_CLKSEL_LCD,
 
-	.vidcon1	= VIDCON1_INV_HSYNC | VIDCON1_INV_VSYNC,
-	.clk		= 65000000,
+	.vidcon1	= SYNC_POLAR,
+	.clk		= PIXEL_CLK,
+	.div		= PIXEL_DIV,
 
 	.setup_gpio	= s5pv210_fb_gpio_setup_24bpp,
 };
