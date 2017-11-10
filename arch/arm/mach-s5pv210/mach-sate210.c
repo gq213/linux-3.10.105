@@ -238,7 +238,7 @@ static struct platform_device sate210_device_led= {
 #ifdef CONFIG_FB_S3C
 static struct s3c_fb_pd_win sate210_fb_win = {
 	.max_bpp	= 32,
-	.default_bpp	= 24,
+	.default_bpp	= BPP,
 	.xres		= H_PIXELS,
 	.yres		= V_PIXELS,
 };

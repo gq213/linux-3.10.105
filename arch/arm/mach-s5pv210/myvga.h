@@ -5,6 +5,7 @@
 #define VGA 3
 
 #if (VGA == 1)
+	#define BPP		24
 	#define H_PIXELS	800
 	#define V_PIXELS	600
 	#define REFRESH		60
@@ -18,6 +19,7 @@
 	#define V_SYNC		4
 	#define V_BACK		23
 #elif (VGA == 2)
+	#define BPP		24
 	#define H_PIXELS	1024
 	#define V_PIXELS	768
 	#define REFRESH		60
@@ -31,6 +33,7 @@
 	#define V_SYNC		6
 	#define V_BACK		29
 #elif (VGA == 3)
+	#define BPP		24
 	#define H_PIXELS	1280
 	#define V_PIXELS	720
 	#define REFRESH		60
@@ -44,6 +47,7 @@
 	#define V_SYNC		5
 	#define V_BACK		20
 #elif (VGA == 4)
+	#define BPP		16
 	#define H_PIXELS	1280
 	#define V_PIXELS	800
 	#define REFRESH		60
