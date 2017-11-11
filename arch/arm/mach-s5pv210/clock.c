@@ -1182,6 +1182,7 @@ static u32 vpll_div[][5] = {
 	{  71000000, 3,  71, 3, 1 },
 	{  74250000, 8, 198, 3, 1 },
 	{  80000000, 3,  80, 3, 1 },
+	{ 106500000,12, 213, 2, 0 },
 };
 
 static unsigned long s5pv210_vpll_get_rate(struct clk *clk)

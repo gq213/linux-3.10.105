@@ -60,6 +60,34 @@
 	#define V_FRONT		3
 	#define V_SYNC		6
 	#define V_BACK		14
+#elif (VGA == 5)
+	#define BPP		16
+	#define H_PIXELS	1280
+	#define V_PIXELS	1024
+	#define REFRESH		60
+	#define PIXEL_CLK	108000000
+	#define PIXEL_DIV	1
+	#define SYNC_POLAR	0
+	#define H_FRONT		48
+	#define H_SYNC		112
+	#define H_BACK		248
+	#define V_FRONT		1
+	#define V_SYNC		3
+	#define V_BACK		38
+#elif (VGA == 6)
+	#define BPP		16
+	#define H_PIXELS	1440
+	#define V_PIXELS	900
+	#define REFRESH		60
+	#define PIXEL_CLK	106500000
+	#define PIXEL_DIV	1
+	#define SYNC_POLAR	VIDCON1_INV_HSYNC
+	#define H_FRONT		80
+	#define H_SYNC		152
+	#define H_BACK		232
+	#define V_FRONT		3
+	#define V_SYNC		6
+	#define V_BACK		25
 #else
 	#error please select VGA type !
 #endif
