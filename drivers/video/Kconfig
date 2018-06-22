@@ -2062,7 +2062,45 @@ config FB_S3C_DEBUG_REGWRITE
        depends on FB_S3C
        ---help---
          Show all register writes via pr_debug()
+		 
+if FB_S3C
 
+choice
+
+prompt "lcd/vga type"
+
+config LCD_AT070TN92
+       bool "lcd AT070TN92"
+	   depends on MACH_TQ210
+
+config VGA_800_600
+       bool "vga 800*600"
+	   depends on MACH_SATE210
+
+config VGA_1024_768
+       bool "vga 1024*768"
+	   depends on MACH_SATE210
+
+config VGA_1280_720
+       bool "vga 1280*720"
+	   depends on MACH_SATE210
+
+config VGA_1280_800
+       bool "vga 1280*800"
+	   depends on MACH_SATE210
+
+config VGA_1280_1024
+       bool "vga 1280*1024"
+	   depends on MACH_SATE210
+
+config VGA_1440_900
+       bool "vga 1440*900"
+	   depends on MACH_SATE210
+
+endchoice
+
+endif
+	   
 config FB_S3C2410
 	tristate "S3C2410 LCD framebuffer support"
 	depends on FB && ARCH_S3C24XX

@@ -35,8 +35,10 @@
 #include <linux/platform_data/usb-ehci-s5p.h>
 
 #include <video/platform_lcd.h>
+#include <video/samsung_fimd.h>
 
 #include "common.h"
+#include "myvga.h"
 
 /* Following are default values for UCON, ULCON and UFCON UART registers */
 #define TQ210_UCON_DEFAULT	(S3C2410_UCON_TXILEVEL |	\
@@ -235,6 +237,15 @@ static struct platform_device s3c_device_gpio_button = {
 		.platform_data	= &gpio_button_data,
 	}
 };
+
+static void __init gpio_button_init(void)
+{
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(gpio_buttons); i++) {
+		s3c_gpio_setpull(gpio_buttons[i].gpio, S3C_GPIO_PULL_UP);
+	}
+}
 #endif
 
 #ifdef CONFIG_LEDS_GPIO
@@ -294,20 +305,23 @@ static struct platform_device tq210_lcd_tn92 = {
 
 static struct s3c_fb_pd_win tq210_fb_win = {
 	.max_bpp	= 32,
-	.default_bpp	= 24,
-	.xres		= 800,
-	.yres		= 480,
+	.default_bpp	= BPP,
+	.xres		= H_PIXELS,
+	.yres		= V_PIXELS,
 };
 
 static struct fb_videomode tq210_lcd_timing = {
-	.left_margin	= 26,	//h_bp
-	.right_margin	= 210,	//h_fp
-	.upper_margin	= 13,	//v_bp
-	.lower_margin	= 22,	//v_fp
-	.hsync_len	= 20,
-	.vsync_len	= 10,
-	.xres		= 800,
-	.yres		= 480,
+	.xres		= H_PIXELS,
+	.yres		= V_PIXELS,
+	.refresh	= REFRESH,
+
+	.right_margin	= H_FRONT,
+	.hsync_len	= H_SYNC,
+	.left_margin	= H_BACK,
+
+	.lower_margin	= V_FRONT,
+	.vsync_len	= V_SYNC,
+	.upper_margin	= V_BACK,
 };
 
 static struct s3c_fb_platdata tq210_lcd0_pdata __initdata = {
@@ -316,9 +330,14 @@ static struct s3c_fb_platdata tq210_lcd0_pdata __initdata = {
 	.win[2]		= &tq210_fb_win,
 	.win[3]		= &tq210_fb_win,
 	.win[4]		= &tq210_fb_win,
+
 	.vtiming	= &tq210_lcd_timing,
-	.vidcon0	= (4<<6)|(1<<4),//33.35MHz
-	.vidcon1	= (1<<6)|(1<<5),
+	.vidcon0	= VIDCON0_CLKSEL_LCD,
+
+	.vidcon1	= SYNC_POLAR,
+	.clk		= PIXEL_CLK,
+	.div		= PIXEL_DIV,
+
 	.setup_gpio	= s5pv210_fb_gpio_setup_24bpp,
 };
 #endif
@@ -381,6 +400,9 @@ static struct platform_device *tq210_devices[] __initdata = {
 #ifdef CONFIG_LEDS_GPIO
 	&tq210_device_led,
 #endif
+#ifdef CONFIG_S3C_DEV_RTC
+	&s3c_device_rtc,
+#endif
 #ifdef CONFIG_FB_S3C
 	&s3c_device_fb,
 	&tq210_lcd_tn92,
@@ -388,9 +410,6 @@ static struct platform_device *tq210_devices[] __initdata = {
 #ifdef CONFIG_INPUT_PWM_BEEPER
 	&s3c_device_timer[1],
 	&tq210_pwm_beeper,
-#endif
-#ifdef CONFIG_S3C_DEV_RTC
-	&s3c_device_rtc,
 #endif
 };
 
@@ -407,6 +426,9 @@ static void __init tq210_machine_init(void)
 			ARRAY_SIZE(tq210_i2c_devs0));
 #ifdef CONFIG_S5P_DEV_USB_EHCI
 	tq210_ehci_init();
+#endif
+#ifdef CONFIG_KEYBOARD_GPIO
+	gpio_button_init();
 #endif
 #ifdef CONFIG_FB_S3C
 	s3c_fb_set_platdata(&tq210_lcd0_pdata);

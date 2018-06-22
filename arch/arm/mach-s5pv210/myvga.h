@@ -2,9 +2,21 @@
 #define __ARCH_ARM_MACH_S5PV210_MYVGA_H
 
 
-#define VGA 3
-
-#if (VGA == 1)
+#if defined CONFIG_LCD_AT070TN92
+	#define BPP		24
+	#define H_PIXELS	800
+	#define V_PIXELS	480
+	#define REFRESH		60
+	#define PIXEL_CLK	65000000
+	#define PIXEL_DIV	2
+	#define SYNC_POLAR	(VIDCON1_INV_HSYNC | VIDCON1_INV_VSYNC)
+	#define H_FRONT		210
+	#define H_SYNC		20
+	#define H_BACK		26
+	#define V_FRONT		22
+	#define V_SYNC		10
+	#define V_BACK		13
+#elif defined CONFIG_VGA_800_600
 	#define BPP		24
 	#define H_PIXELS	800
 	#define V_PIXELS	600
@@ -18,7 +30,7 @@
 	#define V_FRONT		1
 	#define V_SYNC		4
 	#define V_BACK		23
-#elif (VGA == 2)
+#elif defined CONFIG_VGA_1024_768
 	#define BPP		24
 	#define H_PIXELS	1024
 	#define V_PIXELS	768
@@ -32,7 +44,7 @@
 	#define V_FRONT		3
 	#define V_SYNC		6
 	#define V_BACK		29
-#elif (VGA == 3)
+#elif defined CONFIG_VGA_1280_720
 	#define BPP		24
 	#define H_PIXELS	1280
 	#define V_PIXELS	720
@@ -46,7 +58,7 @@
 	#define V_FRONT		5
 	#define V_SYNC		5
 	#define V_BACK		20
-#elif (VGA == 4)
+#elif defined CONFIG_VGA_1280_800
 	#define BPP		16
 	#define H_PIXELS	1280
 	#define V_PIXELS	800
@@ -60,7 +72,7 @@
 	#define V_FRONT		3
 	#define V_SYNC		6
 	#define V_BACK		14
-#elif (VGA == 5)
+#elif defined CONFIG_VGA_1280_1024
 	#define BPP		16
 	#define H_PIXELS	1280
 	#define V_PIXELS	1024
@@ -74,7 +86,7 @@
 	#define V_FRONT		1
 	#define V_SYNC		3
 	#define V_BACK		38
-#elif (VGA == 6)
+#elif defined CONFIG_VGA_1440_900
 	#define BPP		16
 	#define H_PIXELS	1440
 	#define V_PIXELS	900
@@ -88,8 +100,6 @@
 	#define V_FRONT		3
 	#define V_SYNC		6
 	#define V_BACK		25
-#else
-	#error please select VGA type !
 #endif
 
 
