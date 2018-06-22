@@ -502,17 +502,7 @@ i2s_delay(struct snd_pcm_substream *substream, struct snd_soc_dai *dai)
 
 static int samsung_i2s_dai_probe(struct snd_soc_dai *dai)
 {
-	void __iomem *ass_clk;
 	struct i2s_dai *i2s = to_info(dai);
-
-	ass_clk = ioremap(0xeee10000, 0x10);
-	if (ass_clk == NULL) {
-		dev_err(&i2s->pdev->dev, "cannot ioremap registers ass_clk\n");
-		return -ENXIO;
-	}
-	writel(0x1, ass_clk);
-	iounmap(ass_clk);
-	printk("+%s(): open CLKSRC_AUDSS\n", __FUNCTION__ );
 
 	i2s->addr = ioremap(i2s->base, 0x100);
 	if (i2s->addr == NULL) {

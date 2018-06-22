@@ -377,6 +377,25 @@ static int __init tq210_pwm_beeper_init(void)
 }
 #endif
 
+#ifdef CONFIG_SND_S5PV210_I2S
+static void __init tq210_audio_source_init(void)
+{
+	void __iomem *ass_clk;
+	
+	ass_clk = ioremap(0xeee10000, 0x10);
+	if (ass_clk == NULL) {
+		printk("+%s(): cannot ioremap registers ass_clk\n", __FUNCTION__ );
+		return;
+	}
+	
+	__raw_writel(0x1, ass_clk);
+	
+	iounmap(ass_clk);
+	
+	printk("+%s(): open CLKSRC_AUDSS\n", __FUNCTION__ );
+}
+#endif
+
 static struct platform_device *tq210_devices[] __initdata = {
 #ifdef CONFIG_DM9000
 	&tq210_dm9000,
@@ -438,6 +457,9 @@ static void __init tq210_machine_init(void)
 #endif
 #ifdef CONFIG_INPUT_PWM_BEEPER
 	tq210_pwm_beeper_init();
+#endif
+#ifdef CONFIG_SND_S5PV210_I2S
+	tq210_audio_source_init();
 #endif
 	platform_add_devices(tq210_devices, ARRAY_SIZE(tq210_devices));
 }
