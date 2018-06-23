@@ -357,7 +357,7 @@ static int mxr_runtime_suspend(struct device *dev)
 	mxr_dbg(mdev, "suspend - start\n");
 	mutex_lock(&mdev->mutex);
 	/* turn clocks off */
-	clk_disable(res->sclk_mixer);
+	//clk_disable(res->sclk_mixer);
 	clk_disable(res->vp);
 	clk_disable(res->mixer);
 	mutex_unlock(&mdev->mutex);

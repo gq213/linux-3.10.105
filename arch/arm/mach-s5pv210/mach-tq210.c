@@ -30,6 +30,7 @@
 #include <plat/regs-srom.h>
 #include <plat/sdhci.h>
 #include <plat/fb.h>
+#include <plat/hdmi.h>
 #include <plat/backlight.h>
 #include <linux/platform_data/i2c-s3c2410.h>
 #include <linux/platform_data/usb-ehci-s5p.h>
@@ -396,6 +397,12 @@ static void __init tq210_audio_source_init(void)
 }
 #endif
 
+#ifdef CONFIG_S5P_DEV_I2C_HDMIPHY
+static struct i2c_board_info hdmiphy_info = {
+	I2C_BOARD_INFO("hdmiphy-s5pv210", 0x38),
+};
+#endif
+
 static struct platform_device *tq210_devices[] __initdata = {
 #ifdef CONFIG_DM9000
 	&tq210_dm9000,
@@ -430,6 +437,13 @@ static struct platform_device *tq210_devices[] __initdata = {
 	&s3c_device_timer[1],
 	&tq210_pwm_beeper,
 #endif
+#ifdef CONFIG_S5P_DEV_I2C_HDMIPHY
+	&s5p_device_i2c_hdmiphy,
+#endif
+#ifdef CONFIG_S5P_DEV_TV
+	&s5p_device_hdmi,
+	&s5p_device_mixer,
+#endif
 };
 
 static void __init tq210_machine_init(void)
@@ -460,6 +474,10 @@ static void __init tq210_machine_init(void)
 #endif
 #ifdef CONFIG_SND_S5PV210_I2S
 	tq210_audio_source_init();
+#endif
+#ifdef CONFIG_S5P_DEV_I2C_HDMIPHY
+	s5p_i2c_hdmiphy_set_platdata(NULL);
+	s5p_hdmi_set_platdata(&hdmiphy_info, NULL, 0);
 #endif
 	platform_add_devices(tq210_devices, ARRAY_SIZE(tq210_devices));
 }

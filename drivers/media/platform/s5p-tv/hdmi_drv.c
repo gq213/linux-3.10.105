@@ -591,7 +591,7 @@ static void hdmi_resource_poweron(struct hdmi_resources *res)
 static void hdmi_resource_poweroff(struct hdmi_resources *res)
 {
 	/* turn clocks off */
-	clk_disable(res->sclk_hdmi);
+	//clk_disable(res->sclk_hdmi);
 	/* power-off hdmiphy */
 	clk_disable(res->hdmiphy);
 	/* turn HDMI power off */
